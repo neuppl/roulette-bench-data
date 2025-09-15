@@ -1,0 +1,42 @@
+name: Benchmark CI
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write   # required for pushing commits
+
+
+jobs:
+  generate-timing-plots:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          cache: 'pip' # caching pip dependencies
+      - run: pip install -r requirements.txt
+
+      - name: Run plot generation script
+        run: |
+          python3 generate_plot.py
+
+      - name: Generate scribble docs
+        run: |
+          rm -rf summary 
+          raco scribble --htmls summary.scribl
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "Update timing plots [skip ci]" || echo "No changes to commit"
+          git push

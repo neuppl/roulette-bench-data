@@ -1,0 +1,25 @@
+#lang scribble/manual
+@(require racket/path
+          racket/file
+          racket/list
+          scribble/base
+          racket/date)
+
+@title{Benchmarking results summary}
+@margin-note{These plots were generated on @(date->string (current-date))}
+
+
+@linebreak{}
+@linebreak{}
+@linebreak{}
+
+@(define svgs
+   (for/list ([p (in-directory ".")]
+              #:when (regexp-match? #rx"\\.svg$" (path->string p)))
+     p))
+
+@itemlist[
+  @(for/list ([p svgs])
+     @item{@bold{@(path->string (path-replace-suffix (file-name-from-path p) ""))}
+           @linebreak[]
+           @image[#:scale 1]{@(path->string p)}})]
