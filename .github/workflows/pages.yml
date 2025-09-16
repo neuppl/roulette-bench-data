@@ -4,7 +4,7 @@ name: Deploy benchmark page to Pages
 on:
   # Triggers the workflow when a run of the "Benchmark CI" workflow completes successfully
   workflow_run:
-    workflows: [Benchmark CI]
+    workflows: [Generate plots and update docs]
     types:
       - completed
 
