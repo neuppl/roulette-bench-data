@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   generate-timing-plots:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -23,6 +23,14 @@ jobs:
           python-version: '3.x'
           cache: 'pip' # caching pip dependencies
       - run: pip install -r requirements.txt
+
+      - name: Install Racket
+        uses: Bogdanp/setup-racket@v1.14
+        with:
+          architecture: 'x64'
+          distribution: 'full'
+          variant: 'CS'
+          version: 'current'
 
       - name: Run plot generation script
         run: |
