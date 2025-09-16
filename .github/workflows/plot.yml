@@ -1,4 +1,4 @@
-name: Benchmark CI
+name: Generate plots and update docs
 
 on:
   push:
