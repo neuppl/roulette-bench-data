@@ -2,34 +2,68 @@
 
 // Page Parameters ------------------------------------------------------------
 
-function GetURL() {
-  return new URL(location);
-}
+var page_query_string = location.search.substring(1);
 
-function GetPageArgs() {
-  return GetURL().searchParams;
-}
-
-function GetPageQueryString() {
-  return GetPageArgs().toString();
-}
+var page_args =
+  ((function(){
+      if (!page_query_string) return [];
+      var args = page_query_string.split(/[&;]/);
+      for (var i=0; i<args.length; i++) {
+        var a = args[i];
+        var p = a.indexOf('=');
+        if (p >= 0) args[i] = [a.substring(0,p), a.substring(p+1)];
+        else args[i] = [a, false];
+      }
+      return args;
+    })());
 
 function GetPageArg(key, def) {
-  return GetPageArgs().get(key) || def;
+  for (var i=0; i<page_args.length; i++)
+    if (page_args[i][0] === key) {
+      try {
+        return decodeURIComponent(page_args[i][1]);
+      } catch (e) {
+        if (e instanceof URIError) {
+          return page_args[i][1];
+        } else {
+          throw e;
+        }
+      }
+    }
+  return def;
 }
 
 function MergePageArgsIntoLink(a) {
-  if (GetPageArgs().size === 0 || !a.dataset.pltdoc) return;
+  if (page_args.length == 0 ||
+      (!a.attributes["data-pltdoc"]) || (a.attributes["data-pltdoc"].value == ""))
+    return;
   a.href = MergePageArgsIntoUrl(a.href);
 }
 
 function MergePageArgsIntoUrl(href) {
-  const url = new URL(href, window.location.href);
-  for (const [key, val] of GetPageArgs()) {
-    if (url.searchParams.has(key)) continue;
-    url.searchParams.append(key, val)
-  }
-  return url.href;
+    var mtch = href.match(/^([^?#]*)(?:\?([^#]*))?(#.*)?$/);
+    if (mtch == undefined) { // I think this never happens
+        return "?" + page_query_string;
+    }
+    if (!mtch[2]) {
+        return mtch[1] + "?" + page_query_string + (mtch[3] || "");
+    }
+    // need to merge here, precedence to arguments that exist in `a'
+    var i, j;
+    var prefix = mtch[1], str = mtch[2] || "", suffix = mtch[3] || "";
+    var args = str.split(/[&;]/);
+    for (i=0; i<args.length; i++) {
+      j = args[i].indexOf('=');
+      if (j) args[i] = args[i].substring(0,j);
+    }
+    var additions = "";
+    for (i=0; i<page_args.length; i++) {
+      var exists = false;
+      for (j=0; j<args.length; j++)
+        if (args[j] == page_args[i][0]) { exists = true; break; }
+      if (!exists) str += "&" + page_args[i][0] + "=" + page_args[i][1];
+    }
+    return prefix + "?" + str + suffix;
 }
 
 // Cookies --------------------------------------------------------------------
@@ -79,22 +113,12 @@ function SetPLTRoot(ver, relative) {
 
 // adding index.html works because of the above
 function GotoPLTRoot(ver, relative) {
-  var u = GetRootPath(ver);
+  var u = GetCookie("PLT_Root."+ver, null);
   if (u == null) return true; // no cookie: use plain up link
   // the relative path is optional, default goes to the toplevel start page
   if (!relative) relative = "index.html";
   location = u + relative;
   return false;
-}
-
-function GetRootPath(ver) {
-    var u = GetCookie("PLT_Root."+ver, null);
-    if (u != null)
-        return u;
-    // use root specified by local-redirect wrapper, if present
-    if (typeof user_doc_root != "undefined")
-        return user_doc_root;
-    return null;
 }
 
 // Utilities ------------------------------------------------------------------
@@ -116,7 +140,7 @@ function NormalizePath(path) {
 function DoSearchKey(event, field, ver, top_path) {
   var val = field.value;
   if (event && event.key === 'Enter') {
-    var u = GetRootPath(ver);
+    var u = GetCookie("PLT_Root."+ver, null);
     if (u == null) u = top_path; // default: go to the top path
     u += "search/index.html?q=" + encodeURIComponent(val);
     u = MergePageArgsIntoUrl(u);
