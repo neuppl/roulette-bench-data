@@ -24,14 +24,6 @@ jobs:
           cache: 'pip' # caching pip dependencies
       - run: pip install -r requirements.txt
 
-      - name: Install Racket
-        uses: Bogdanp/setup-racket@v1.14
-        with:
-          architecture: 'x64'
-          distribution: 'full'
-          variant: 'CS'
-          version: 'current'
-
       - name: Run plot generation script
         run: |
           python3 generate_plot.py
