@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 import os
-
+import sys
 base_dir = "results"
 records = []
 
@@ -24,6 +24,11 @@ def extract_timestamp(folder_name):
 
 # Get and sort folders by timestamp
 folders = [f for f in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, f))]
+
+if not folders:
+    print("No result folders found in the 'results' directory.")
+    sys.exit(0)
+
 folders.sort(key=extract_timestamp)
 
 # Process folders in sorted order
