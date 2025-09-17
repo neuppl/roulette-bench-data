@@ -9,17 +9,37 @@
 @margin-note{These plots were generated on @(date->string (current-date))}
 
 
-@linebreak{}
-@linebreak{}
-@linebreak{}
+There are currently 3 parameters on which benchmarks are collected: timing 
+(which includes real time, cpu time and gc time), number of recursive calls, and 
+total size. You can find plots for each parameter in the seperate sections of this
+document.
 
-@(define svgs
-   (for/list ([p (in-directory ".")]
+@(define (find-svgs-in dir)
+   (for/list ([p (in-directory dir)]
               #:when (regexp-match? #rx"\\.svg$" (path->string p)))
      p))
 
-@itemlist[
-  @(for/list ([p svgs])
-     @item{@bold{@(path->string (path-replace-suffix (file-name-from-path p) ""))}
-           @linebreak[]
-           @image[#:scale 1]{@(path->string p)}})]
+@(define timing-svgs
+   (find-svgs-in "plots_timing"))
+
+@(define recursive-calls-svgs 
+   (find-svgs-in "plots_recursive_calls"))
+
+@(define total-size-svgs
+   (find-svgs-in "plots_total_size"))
+
+@(define (image-item-list paths)
+   @itemlist[
+      @(for/list ([p paths])
+         @item{@bold{@(path->string (path-replace-suffix (file-name-from-path p) ""))}
+               @linebreak[]
+               @image[#:scale 1]{@(path->string p)}})])
+
+@section{Timing}
+@(image-item-list recursive-calls-svgs)
+
+@section{Number of recursive calls}
+@(image-item-list timing-svgs)
+
+@section{Total size}
+@(image-item-list total-size-svgs)

@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+import os
 
 base_dir = "results"
 records = []
@@ -46,6 +47,7 @@ df['run'] = pd.Categorical(df['run'], categories=folders, ordered=True)
 df = df.sort_values('run')
 
 for filename, group in df.groupby("filename"):
+    # Plot #1: Timing Data
     plt.figure(figsize=(10, 6))  # Increased figure size for better readability
     
     # Sort group by run to ensure correct plotting order
@@ -76,4 +78,67 @@ for filename, group in df.groupby("filename"):
     
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f"{filename[:-5]}.svg", dpi=100, bbox_inches='tight', format='svg')
+
+    output_dir = 'plots_timing'
+    os.makedirs(output_dir, exist_ok=True)  
+    timing_img_path = os.path.join(output_dir, f"{filename[:-5]}.svg")
+    plt.savefig(timing_img_path, dpi=100, bbox_inches='tight', format='svg')
+    plt.close()  # Close the figure to free memory
+    
+    # Plot #2: Recursive Calls
+    if "recursive-calls" in group.columns:
+        plt.figure(figsize=(10, 6))
+        
+        plt.plot(x_positions, group["recursive-calls"], marker="o", color="green", linewidth=2)
+        
+        plt.title(f"Recursive Calls for {filename}")
+        plt.xlabel("Run")
+        plt.ylabel("Number of Recursive Calls")
+        
+        # Set x-tick labels
+        if len(run_labels) > 10:
+            step = max(1, len(run_labels) // 10)
+            tick_positions = list(range(0, len(run_labels), step))
+            tick_labels = [run_labels[i] for i in tick_positions]
+            plt.xticks(tick_positions, tick_labels, rotation=45, ha='right')
+        else:
+            plt.xticks(x_positions, run_labels, rotation=45, ha='right')
+        
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+
+        output_dir = 'plots_recursive_calls'
+        os.makedirs(output_dir, exist_ok=True)  
+        recursive_calls_img_path = os.path.join(output_dir, f"{filename[:-5]}_recursive_calls.svg")
+        plt.savefig(recursive_calls_img_path, dpi=100, bbox_inches='tight', format='svg')
+        plt.close()  # Close the figure to free memory
+    
+    #Plot #3: Total Size
+    if "total-size" in group.columns:
+        plt.figure(figsize=(10, 6))
+        
+        plt.plot(x_positions, group["total-size"], marker="o", color="purple", linewidth=2)
+        
+        plt.title(f"Total Size for {filename}")
+        plt.xlabel("Run")
+        plt.ylabel("Total Size")
+        
+        # Set x-tick labels
+        if len(run_labels) > 10:
+            step = max(1, len(run_labels) // 10)
+            tick_positions = list(range(0, len(run_labels), step))
+            tick_labels = [run_labels[i] for i in tick_positions]
+            plt.xticks(tick_positions, tick_labels, rotation=45, ha='right')
+        else:
+            plt.xticks(x_positions, run_labels, rotation=45, ha='right')
+        
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+
+        output_dir = 'plots_total_size'
+        os.makedirs(output_dir, exist_ok=True)  
+        total_size_img_path = os.path.join(output_dir, f"{filename[:-5]}_total_size.svg")
+        plt.savefig(total_size_img_path, dpi=100, bbox_inches='tight', format='svg')
+        plt.close()  # Close the figure to free memory
+
+print("All plots have been saved as SVG files.")
