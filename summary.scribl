@@ -36,10 +36,10 @@ document.
                @image[#:scale 1]{@(path->string p)}})])
 
 @section{Timing}
-@(image-item-list recursive-calls-svgs)
+@(image-item-list timing-svgs)
 
 @section{Number of recursive calls}
-@(image-item-list timing-svgs)
+@(image-item-list recursive-calls-svgs)
 
 @section{Total size}
 @(image-item-list total-size-svgs)
