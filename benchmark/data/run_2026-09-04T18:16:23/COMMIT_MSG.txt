@@ -1,0 +1,41 @@
+probalog: order base-fact variables by breadth-first traversal
+
+Variables were created in whatever order the facts happened to be
+written. For a representation with a total variable order that is the
+order it tests them in, and the cost depends on how far apart related
+variables sit: the diagram must keep alive every decision still
+relevant below the current level.
+
+Rule bodies join on shared variables, which bind to shared constants,
+so two facts naming the same constant are exactly the ones that can
+meet in a derivation.  builds the graph of which
+constants share a fact, walks it breadth-first, and sorts the facts by
+their earliest-visited argument. It looks only at which facts share a
+constant and never at what a constant is, so renaming the data does
+not change the result -- confirmed by permuting node labels, which
+moves a sort-by-argument order by 2x and this one not at all.
+
+The chorded ring, previously the worst case, at n=16 (ms, total):
+
+  term (before BDD guards)   2661
+  bdd, declaration order     6576
+  bdd, this order             438
+
+so 15x against the unordered version and 6x against the original
+implementation. smokers n=14 32 -> 24, ring n=60 960 -> 822, dag
+(6,5) 494 -> 468. dag (6,6) improves 5420 -> 3676 but still trails
+term's 1532: a wide converging DAG is the shape where compiling the
+accumulated formula once at the end genuinely wins.
+
+Elimination orders were tried first and are the wrong tool. min-fill
+and min-degree minimise treewidth, which is the parameter for a
+vtree-structured representation such as an SDD; a total variable order
+is a path decomposition, so the parameter is pathwidth. Measured on
+chordring n=14: BFS 279ms, min-fill 615ms, min-degree 931ms,
+declaration 954ms. Both elimination orders were tried in both
+directions.
+
+Term backend unchanged in behaviour. 165 term tests and 118 BDD tests
+pass.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
